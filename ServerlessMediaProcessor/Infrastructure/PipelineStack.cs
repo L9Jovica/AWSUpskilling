@@ -323,7 +323,8 @@ namespace Infrastructure
                 StackName = "MediaProcessor-Staging",
                 
                 // TEMPLATE: CDK synthesized CloudFormation template
-                TemplatePath = buildOutput.AtPath("cdk.out/InfrastructureStack.template.json"),
+                // NOTE: Template name matches the stack ID from Program.cs
+                TemplatePath = buildOutput.AtPath("cdk.out/MediaProcessorStack-JSavic.template.json"),
                 
                 // ADMIN PERMISSIONS: Allow CloudFormation to create any resource
                 AdminPermissions = true,
@@ -394,7 +395,7 @@ namespace Infrastructure
             {
                 ActionName = "Deploy-Production-Infrastructure",
                 StackName = "MediaProcessor-Production",
-                TemplatePath = buildOutput.AtPath("cdk.out/InfrastructureStack.template.json"),
+                TemplatePath = buildOutput.AtPath("cdk.out/MediaProcessorStack-JSavic.template.json"),
                 AdminPermissions = true,
                 ParameterOverrides = new Dictionary<string, object>
                 {
