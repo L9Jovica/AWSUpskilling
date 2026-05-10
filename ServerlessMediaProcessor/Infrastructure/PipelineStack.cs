@@ -327,13 +327,7 @@ namespace Infrastructure
                 TemplatePath = buildOutput.AtPath("cdk.out/MediaProcessorStack-JSavic.template.json"),
                 
                 // ADMIN PERMISSIONS: Allow CloudFormation to create any resource
-                AdminPermissions = true,
-                
-                // PARAMETERS: Pass environment-specific values
-                ParameterOverrides = new Dictionary<string, object>
-                {
-                    { "Environment", "staging" }
-                }
+                AdminPermissions = true
             });
             
             // AWS CONCEPT: Staging Environment
@@ -396,11 +390,7 @@ namespace Infrastructure
                 ActionName = "Deploy-Production-Infrastructure",
                 StackName = "MediaProcessor-Production",
                 TemplatePath = buildOutput.AtPath("cdk.out/MediaProcessorStack-JSavic.template.json"),
-                AdminPermissions = true,
-                ParameterOverrides = new Dictionary<string, object>
-                {
-                    { "Environment", "production" }
-                }
+                AdminPermissions = true
             });
             
             // AWS CONCEPT: Production Deployment
