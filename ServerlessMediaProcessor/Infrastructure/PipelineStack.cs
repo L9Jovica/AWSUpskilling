@@ -277,20 +277,8 @@ namespace Infrastructure
             // STAGE 3: DEPLOY TO STAGING
             // ===================================================
             
-            // Deploy Lambda functions
-            var deployStagingLambdaAction = new LambdaInvokeAction(new LambdaInvokeActionProps
-            {
-                ActionName = "Deploy-Staging-Lambdas",
-                
-                // LAMBDA FUNCTION: Custom deployment Lambda
-                // (You would create this separately to handle Lambda updates)
-                Lambda = null, // TODO: Create deployment Lambda
-                
-                // INPUT: Build artifacts with Lambda ZIP
-                Inputs = new[] { buildOutput }
-            });
-            
             // Deploy infrastructure with CDK
+            // CloudFormation handles Lambda deployments automatically
             var deployStagingInfraAction = new CloudFormationCreateUpdateStackAction(new CloudFormationCreateUpdateStackActionProps
             {
                 ActionName = "Deploy-Staging-Infrastructure",
@@ -396,7 +384,7 @@ namespace Infrastructure
             // ===================================================
             // Configure what events trigger SNS notifications
             
-            pipeline.OnStateChange("PipelineStateChange", new Amazon.CDK.AWS.Events.RuleProps
+            pipeline.OnStateChange("PipelineStateChange", new Amazon.CDK.AWS.Events.OnEventOptions
             {
                 Description = "Pipeline state changes",
                 EventPattern = new Amazon.CDK.AWS.Events.EventPattern
@@ -407,10 +395,7 @@ namespace Infrastructure
                         { "state", new[] { "FAILED", "SUCCEEDED" } }
                     }
                 },
-                Targets = new[]
-                {
-                    new Amazon.CDK.AWS.Events.Targets.SnsTopic(pipelineNotificationTopic)
-                }
+                Target = new Amazon.CDK.AWS.Events.Targets.SnsTopic(pipelineNotificationTopic)
             });
             
             // ===================================================
