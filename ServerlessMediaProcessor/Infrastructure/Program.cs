@@ -63,7 +63,7 @@ namespace Infrastructure
             // COMMENTED OUT BY DEFAULT:
             // Uncomment the lines below when you're ready to set up CI/CD
             
-            /*
+            // ✅ ENABLED: Pipeline stack is now active!
             new PipelineStack(app, "PipelineStack-JSavic", new StackProps
             {
                 Env = new Amazon.CDK.Environment
@@ -72,7 +72,6 @@ namespace Infrastructure
                 },
                 Description = "CI/CD Pipeline for Media Processor"
             });
-            */
             
             // 🎓 AWS CONCEPT: Why commented out?
             // Pipeline stack requires GitHub connection setup first
