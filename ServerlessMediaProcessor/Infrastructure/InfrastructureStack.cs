@@ -969,7 +969,6 @@ namespace Infrastructure
             
             var s3EventRule = new Rule(this, "S3UploadRule", new RuleProps
             {
-                RuleName = "MediaProcessor-S3Upload-JSavic",
                 Description = "Triggers image processing when files are uploaded to S3 input bucket",
                 
                 // EVENT PATTERN: Defines which events we want to capture
@@ -1383,7 +1382,6 @@ namespace Infrastructure
             
             EcsCluster = new Cluster(this, "MediaProcessorCluster", new ClusterProps
             {
-                ClusterName = "MediaProcessor-Cluster",
                 
                 // VPC where cluster will run
                 Vpc = Vpc,
@@ -1409,7 +1407,6 @@ namespace Infrastructure
                     Cluster = EcsCluster,
                     
                     // SERVICE NAME
-                    ServiceName = "AdminDashboard",
                     
                     // CPU: 256 = 0.25 vCPU (smallest Fargate size)
                     // Options: 256, 512, 1024, 2048, 4096
@@ -1460,7 +1457,6 @@ namespace Infrastructure
                     },
                     
                     // LOAD BALANCER NAME
-                    LoadBalancerName = "MediaProcessor-ALB",
                     
                     // HEALTH CHECK: ALB checks if task is healthy
                     // Unhealthy tasks are replaced automatically
@@ -1702,7 +1698,6 @@ namespace Infrastructure
             var jobCompletionTopic = new Topic(this, "JobCompletionTopic", new TopicProps
             {
                 // TOPIC NAME
-                TopicName = "MediaProcessor-JobCompletion",
                 
                 // DISPLAY NAME (for email/SMS subscriptions)
                 DisplayName = "Media Processor Job Completion Notifications"
@@ -1715,7 +1710,6 @@ namespace Infrastructure
             
             var notificationDlq = new Queue(this, "NotificationDLQ", new QueueProps
             {
-                QueueName = "MediaProcessor-Notification-DLQ",
                 
                 // RETENTION: Keep failed messages for 14 days
                 RetentionPeriod = Duration.Days(14)
@@ -1727,7 +1721,6 @@ namespace Infrastructure
             
             var emailNotificationQueue = new Queue(this, "EmailNotificationQueue", new QueueProps
             {
-                QueueName = "MediaProcessor-EmailNotifications",
                 
                 // VISIBILITY TIMEOUT: How long message is invisible after being received
                 // Should be longer than Lambda function timeout
