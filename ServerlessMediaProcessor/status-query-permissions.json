@@ -1,0 +1,13 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "dynamodb:GetItem",
+        "dynamodb:Query"
+      ],
+      "Resource": "arn:aws:dynamodb:eu-west-1:765891906457:table/MediaProcessingJobs-JSavic"
+    }
+  ]
+}

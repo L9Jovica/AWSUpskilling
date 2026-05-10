@@ -1,0 +1,14 @@
+{
+  "source": ["aws.s3"],
+  "detail-type": ["Object Created"],
+  "detail": {
+    "bucket": {
+      "name": ["media-processor-input-jsavic-765891906457"]
+    },
+    "object": {
+      "key": [{
+        "prefix": "jobs/"
+      }]
+    }
+  }
+}

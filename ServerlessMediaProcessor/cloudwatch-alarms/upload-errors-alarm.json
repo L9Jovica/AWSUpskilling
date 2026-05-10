@@ -1,0 +1,21 @@
+{
+  "AlarmName": "MediaProcessor-UploadErrors-JSavic",
+  "AlarmDescription": "Triggers when Upload Lambda has errors. Upload should rarely fail - investigate immediately.",
+  "MetricName": "Errors",
+  "Namespace": "AWS/Lambda",
+  "Statistic": "Sum",
+  "Period": 300,
+  "EvaluationPeriods": 1,
+  "Threshold": 1.0,
+  "ComparisonOperator": "GreaterThanThreshold",
+  "TreatMissingData": "notBreaching",
+  "Dimensions": [
+    {
+      "Name": "FunctionName",
+      "Value": "MediaProcessor-ImageUpload-JSavic"
+    }
+  ],
+  "AlarmActions": [
+    "arn:aws:sns:eu-west-1:765891906457:MediaProcessor-Alarms-JSavic"
+  ]
+}

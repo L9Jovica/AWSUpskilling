@@ -1,0 +1,21 @@
+{
+  "AlarmName": "MediaProcessor-ProcessingErrors-JSavic",
+  "AlarmDescription": "Triggers when Processing Lambda has high error rate (>3 in 5 minutes). May indicate S3/DynamoDB issues.",
+  "MetricName": "Errors",
+  "Namespace": "AWS/Lambda",
+  "Statistic": "Sum",
+  "Period": 300,
+  "EvaluationPeriods": 1,
+  "Threshold": 3.0,
+  "ComparisonOperator": "GreaterThanThreshold",
+  "TreatMissingData": "notBreaching",
+  "Dimensions": [
+    {
+      "Name": "FunctionName",
+      "Value": "MediaProcessor-ProcessingHandler-JSavic"
+    }
+  ],
+  "AlarmActions": [
+    "arn:aws:sns:eu-west-1:765891906457:MediaProcessor-Alarms-JSavic"
+  ]
+}

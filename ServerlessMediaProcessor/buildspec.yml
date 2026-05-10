@@ -1,0 +1,280 @@
+# AWS CodeBuild Build Specification
+# This file tells CodeBuild HOW to build your project
+#
+# 🎓 AWS CODEBUILD CONCEPTS:
+# ==================================================
+# CodeBuild runs in a Docker container with tools you specify
+# It goes through phases: install → pre_build → build → post_build
+# Each phase runs commands sequentially
+# If ANY command fails (exit code != 0), build stops
+#
+# PHASES EXPLAINED:
+# - install: Install tools/runtimes (.NET SDK, Node.js, etc.)
+# - pre_build: Setup steps (restore packages, login to registries)
+# - build: Actual compilation and testing
+# - post_build: Package artifacts for deployment
+#
+# ARTIFACTS:
+# Files created by build that are uploaded to S3 for deployment
+# ==================================================
+
+version: 0.2
+
+# 🎓 ENVIRONMENT VARIABLES
+# ==================================================
+# Variables available during build
+# Can be overridden in CodeBuild project settings
+# ==================================================
+env:
+  variables:
+    # .NET Configuration
+    DOTNET_CLI_TELEMETRY_OPTOUT: 1  # Don't send telemetry to Microsoft
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1  # Skip first-time setup
+    
+  # Secrets can be stored in AWS Secrets Manager or Parameter Store
+  # Example: GitHub token, Docker Hub credentials
+  # secrets-manager:
+  #   GITHUB_TOKEN: /CodeBuild/GitHubToken
+
+# 🎓 PHASES: Step-by-Step Build Process
+# ==================================================
+phases:
+  
+  # -------------------------------------------
+  # PHASE 1: INSTALL
+  # Purpose: Install required tools and runtimes
+  # -------------------------------------------
+  install:
+    # CodeBuild provides Amazon Linux 2 image
+    # We need .NET 8 SDK to build our C# code
+    runtime-versions:
+      dotnet: 8.0  # Install .NET 8 SDK
+    
+    commands:
+      - echo "====================================="
+      - echo "PHASE 1 INSTALL - Installing tools"
+      - echo "====================================="
+      
+      # Verify .NET is installed
+      - dotnet --version
+      
+      # Install AWS CDK CLI (for deploying infrastructure)
+      - npm install -g aws-cdk
+      - cdk --version
+      
+      # Print build information
+      - echo "Build started at $(date)"
+      - echo "Repository $CODEBUILD_SOURCE_REPO_URL"
+      - echo "Commit ID $CODEBUILD_RESOLVED_SOURCE_VERSION"
+
+  # -------------------------------------------
+  # PHASE 2: PRE_BUILD
+  # Purpose: Preparation steps before building
+  # -------------------------------------------
+  pre_build:
+    commands:
+      - echo "====================================="
+      - echo "PHASE 2 PRE_BUILD - Restoring packages"
+      - echo "====================================="
+      
+      # Navigate to solution directory
+      - cd $CODEBUILD_SRC_DIR
+      
+      # Restore NuGet packages for entire solution
+      # This downloads all dependencies defined in .csproj files
+      - dotnet restore ServerlessMediaProcessor.sln
+      
+      # Show what we're building
+      - echo "Solution restored. Projects:"
+      - ls -la
+
+  # -------------------------------------------
+  # PHASE 3: BUILD
+  # Purpose: Compile code and run tests
+  # -------------------------------------------
+  build:
+    commands:
+      - echo "====================================="
+      - echo "PHASE 3 BUILD - Compiling and Testing"
+      - echo "====================================="
+      
+      # -------------------------------------------
+      # Step 1: Build entire solution
+      # -------------------------------------------
+      - echo "Building solution..."
+      - dotnet build ServerlessMediaProcessor.sln --configuration Release --no-restore
+      
+      # AWS CONCEPT: Why --no-restore?
+      # We already restored in pre_build phase
+      # No need to restore again, saves time!
+      
+      # -------------------------------------------
+      # Step 2: Run Unit Tests
+      # -------------------------------------------
+      - echo "Running unit tests..."
+      - dotnet test LambdaHandlers.Tests/LambdaHandlers.Tests.csproj --configuration Release --no-build --verbosity normal
+      
+      # AWS CONCEPT: Why run tests in CI/CD?
+      # - Catches bugs BEFORE deployment
+      # - If tests fail, build stops (don't deploy broken code!)
+      # - Gives confidence that code works
+      
+      # If tests fail, CodeBuild marks build as FAILED
+      # Pipeline stops here, nothing gets deployed!
+      
+      - echo "✅ All tests passed!"
+
+  # -------------------------------------------
+  # PHASE 4: POST_BUILD
+  # Purpose: Package artifacts for deployment
+  # -------------------------------------------
+  post_build:
+    commands:
+      - echo "====================================="
+      - echo "PHASE 4 POST_BUILD - Creating deployment packages"
+      - echo "====================================="
+      
+      # -------------------------------------------
+      # Step 1: Publish Lambda Functions
+      # -------------------------------------------
+      # "Publish" means: compile code + copy all dependencies
+      # Result: Self-contained folder ready to run on Lambda
+      
+      - echo "Publishing Lambda handlers..."
+      - dotnet publish LambdaHandlers/LambdaHandlers.csproj --configuration Release --output lambda-publish
+      
+      # AWS CONCEPT: Lambda Deployment Package
+      # Lambda needs ALL files: DLLs, dependencies, configs
+      # "dotnet publish" creates complete package
+      
+      # -------------------------------------------
+      # Step 2: Create ZIP files for each Lambda
+      # -------------------------------------------
+      # Why separate ZIPs?
+      # Each Lambda function deployed independently
+      # Can update one without touching others
+      
+      - cd lambda-publish
+      
+      # Create Upload Lambda package
+      - echo "Creating Upload Lambda package..."
+      - zip -r ../upload-lambda.zip .
+      
+      # Note: All 3 Lambdas use same code base
+      # They're separated by entry point (Handler specification)
+      # So we create one package, use for all 3 Lambdas
+      
+      - cd ..
+      
+      # -------------------------------------------
+      # Step 3: Prepare CDK Infrastructure
+      # -------------------------------------------
+      - echo "Synthesizing CDK templates..."
+      
+      # AWS CONCEPT: CDK Synth
+      # Converts C# CDK code → CloudFormation YAML
+      # CloudFormation is AWS's infrastructure language
+      
+      - cd Infrastructure
+      - cdk synth --output ../cdk.out
+      - cd ..
+      
+      # -------------------------------------------
+      # Step 4: Create build info file
+      # -------------------------------------------
+      # Store metadata about this build
+      - echo "Creating build info..."
+      - |
+        cat > build-info.json << EOF
+        {
+          "buildId": "$CODEBUILD_BUILD_ID",
+          "buildNumber": "$CODEBUILD_BUILD_NUMBER",
+          "sourceVersion": "$CODEBUILD_RESOLVED_SOURCE_VERSION",
+          "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "branch": "$CODEBUILD_WEBHOOK_HEAD_REF"
+        }
+        EOF
+      
+      - echo "Build artifacts created successfully!"
+      - echo "Artifacts:"
+      - ls -lh *.zip
+      - du -sh cdk.out
+
+# 🎓 ARTIFACTS: What Gets Uploaded to S3
+# ==================================================
+# These files are passed to deployment stages
+# CodePipeline stores them in S3, then uses for deployment
+# ==================================================
+artifacts:
+  # Base directory for artifacts
+  base-directory: $CODEBUILD_SRC_DIR
+  
+  # Files/folders to upload
+  files:
+    # Lambda deployment package (contains all 3 Lambda functions)
+    - upload-lambda.zip
+    
+    # CDK CloudFormation templates
+    - 'cdk.out/**/*'
+    
+    # Build metadata
+    - build-info.json
+    
+  # AWS CONCEPT: Why these artifacts?
+  # - upload-lambda.zip: Deployed to Lambda functions
+  # - cdk.out/: Used by CDK to update infrastructure
+  # - build-info.json: Deployment tracking, rollback reference
+
+# 🎓 CACHE: Speed Up Future Builds
+# ==================================================
+# Cache NuGet packages between builds
+# First build: Downloads packages (~2 minutes)
+# Subsequent builds: Uses cache (~10 seconds)
+# ==================================================
+cache:
+  paths:
+    - '/root/.nuget/packages/**/*'  # NuGet package cache
+    - '/root/.local/share/NuGet/**/*'  # NuGet global packages
+
+# 🎓 REPORTS: Test Results
+# ==================================================
+# CodeBuild can parse test results and show in console
+# ==================================================
+reports:
+  test-results:
+    files:
+      - 'LambdaHandlers.Tests/TestResults/*.trx'
+    file-format: 'VisualStudioTrx'
+
+# ==================================================
+# BUILD PHASES SUMMARY
+# ==================================================
+# 1. INSTALL (~1 minute)
+#    - Install .NET 8 SDK
+#    - Install AWS CDK CLI
+#
+# 2. PRE_BUILD (~30 seconds)
+#    - Restore NuGet packages
+#
+# 3. BUILD (~2 minutes)
+#    - Compile entire solution
+#    - Run ALL unit tests (if any fail, STOP!)
+#
+# 4. POST_BUILD (~1 minute)
+#    - Create Lambda ZIP file
+#    - Generate CloudFormation templates
+#    - Package everything for deployment
+#
+# TOTAL TIME: ~5 minutes per build
+# COST: $0.005/minute × 5 = $0.025 per build
+#       First 100 minutes/month FREE!
+#
+# ==================================================
+# WHAT HAPPENS AFTER THIS?
+# ==================================================
+# CodeBuild uploads artifacts to S3
+# CodePipeline picks up artifacts
+# Deployment stage uses:
+#   - upload-lambda.zip → Updates Lambda functions
+#   - cdk.out/ → Updates infrastructure via CloudFormation
+# ==================================================

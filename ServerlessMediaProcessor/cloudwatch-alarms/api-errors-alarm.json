@@ -1,0 +1,21 @@
+{
+  "AlarmName": "MediaProcessor-APIErrors-JSavic",
+  "AlarmDescription": "Triggers when API Gateway has 5xx server errors (>5 in 5 minutes). Indicates Lambda integration issues.",
+  "MetricName": "5XXError",
+  "Namespace": "AWS/ApiGateway",
+  "Statistic": "Sum",
+  "Period": 300,
+  "EvaluationPeriods": 1,
+  "Threshold": 5.0,
+  "ComparisonOperator": "GreaterThanThreshold",
+  "TreatMissingData": "notBreaching",
+  "Dimensions": [
+    {
+      "Name": "ApiName",
+      "Value": "MediaProcessorApi-JSavic"
+    }
+  ],
+  "AlarmActions": [
+    "arn:aws:sns:eu-west-1:765891906457:MediaProcessor-Alarms-JSavic"
+  ]
+}

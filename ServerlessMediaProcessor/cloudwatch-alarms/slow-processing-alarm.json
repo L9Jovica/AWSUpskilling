@@ -1,0 +1,21 @@
+{
+  "AlarmName": "MediaProcessor-SlowProcessing-JSavic",
+  "AlarmDescription": "Triggers when Processing Lambda takes longer than 45 seconds on average. Normal is 30-35 seconds.",
+  "MetricName": "Duration",
+  "Namespace": "AWS/Lambda",
+  "Statistic": "Average",
+  "Period": 300,
+  "EvaluationPeriods": 2,
+  "Threshold": 45000.0,
+  "ComparisonOperator": "GreaterThanThreshold",
+  "TreatMissingData": "notBreaching",
+  "Dimensions": [
+    {
+      "Name": "FunctionName",
+      "Value": "MediaProcessor-ProcessingHandler-JSavic"
+    }
+  ],
+  "AlarmActions": [
+    "arn:aws:sns:eu-west-1:765891906457:MediaProcessor-Alarms-JSavic"
+  ]
+}

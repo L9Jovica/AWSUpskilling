@@ -1,0 +1,10 @@
+[
+  {
+    "Id": "1",
+    "Arn": "arn:aws:lambda:eu-west-1:765891906457:function:MediaProcessor-ProcessingHandler-JSavic",
+    "RetryPolicy": {
+      "MaximumRetryAttempts": 2,
+      "MaximumEventAgeInSeconds": 7200
+    }
+  }
+]
