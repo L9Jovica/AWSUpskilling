@@ -41,9 +41,11 @@ phases:
       - cd ../../../../../
       - echo "Building Infrastructure project for CDK..."
       - dotnet build Infrastructure/Infrastructure.csproj --configuration Debug
-      - echo "Synthesizing CDK templates..."
+      - echo "Synthesizing and publishing CDK assets..."
       - cd Infrastructure
       - cdk synth --output ../cdk.out
+      - echo "Publishing CDK assets to S3..."
+      - cdk-assets --path ../cdk.out/MediaProcessorStack-JSavic.assets.json --verbose publish
       - cd ..
       - echo "Creating build info..."
       - echo "{\"buildId\":\"$CODEBUILD_BUILD_ID\",\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" > build-info.json
