@@ -233,6 +233,25 @@ namespace Infrastructure
                 Actions = new[] { sourceAction }
             });
             
+            // Grant pipeline role permission to use the GitHub connection
+            // Without this, pipeline can't access the connection
+            pipeline.Role.AddToPrincipalPolicy(new Amazon.CDK.AWS.IAM.PolicyStatement(new Amazon.CDK.AWS.IAM.PolicyStatementProps
+            {
+                Effect = Amazon.CDK.AWS.IAM.Effect.ALLOW,
+                Actions = new[] { 
+                    "codeconnections:UseConnection",
+                    "codestar-connections:UseConnection"
+                },
+                Resources = new[] { 
+                    "arn:aws:codeconnections:eu-west-1:765891906457:connection/e0045f78-5500-4fb0-a85b-b5e8a0732001"
+                }
+            }));
+            
+            // AWS CONCEPT: IAM Permissions for CodeConnections
+            // The pipeline role needs explicit permission to USE the connection
+            // Even though connection exists, IAM must allow access
+            // This is AWS security: explicit permissions required
+            
             // ===================================================
             // STAGE 2: BUILD - COMPILE AND TEST CODE
             // ===================================================
