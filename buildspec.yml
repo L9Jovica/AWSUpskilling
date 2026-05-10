@@ -39,6 +39,8 @@ phases:
       - cd LambdaHandlers/bin/Release/net8.0/publish
       - zip -r ../../../../../upload-lambda.zip .
       - cd ../../../../../
+      - echo "Uploading Lambda code to S3..."
+      - aws s3 cp upload-lambda.zip s3://media-processor-pipeline-artifacts-765891906457/lambda-code/upload-lambda-latest.zip
       - echo "Building Infrastructure project for CDK..."
       - dotnet build Infrastructure/Infrastructure.csproj --configuration Debug
       - echo "Synthesizing CDK templates..."
@@ -46,7 +48,7 @@ phases:
       - cdk synth --output ../cdk.out
       - cd ..
       - echo "Creating build info..."
-      - echo "{\"buildId\":\"$CODEBUILD_BUILD_ID\",\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" > build-info.json
+      - echo "{\"buildId\":\"$CODEBUILD_BUILD_ID\",\"buildNumber\":\"$CODEBUILD_BUILD_NUMBER\",\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" > build-info.json
       - echo "Build complete!"
       - ls -lh *.zip
       - du -sh cdk.out

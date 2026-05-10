@@ -37,6 +37,9 @@ namespace Infrastructure
         public ICluster EcsCluster { get; private set; } = null!;
         public IApplicationLoadBalancer AdminDashboardAlb { get; private set; } = null!;
         
+        // S3 bucket containing Lambda deployment code (used in CI/CD)
+        private IBucket LambdaCodeBucket { get; set; } = null!;
+        
         /// <summary>
         /// Constructor - Called by CDK to create the stack
         /// </summary>
@@ -46,7 +49,14 @@ namespace Infrastructure
         public InfrastructureStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
             // ==========================================
-            // PHASE 0: VPC NETWORKING (Foundation)
+            // PHASE 0.1: LAMBDA CODE BUCKET REFERENCE
+            // ==========================================
+            // Reference the S3 bucket where Lambda code is uploaded during CI/CD
+            LambdaCodeBucket = Bucket.FromBucketName(this, "LambdaCodeBucket", 
+                "media-processor-pipeline-artifacts-765891906457");
+            
+            // ==========================================
+            // PHASE 0.2: VPC NETWORKING (Foundation)
             // ==========================================
             
             CreateVpc();
@@ -429,7 +439,7 @@ namespace Infrastructure
                 // CODE: Where is the Lambda code?
                 // In CI/CD, we use pre-built code from CodeBuild (no Docker bundling needed)
                 // The buildspec.yml publishes to this directory
-                Code = Code.FromAsset("../LambdaHandlers/bin/Release/net8.0/publish"),
+                Code = Code.FromBucket(LambdaCodeBucket, "lambda-code/upload-lambda-latest.zip"),
                 
                 // FUNCTION NAME: Human-readable name in AWS Console
                 
@@ -672,7 +682,7 @@ namespace Infrastructure
                 Handler = "LambdaHandlers::LambdaHandlers.Handlers.StatusQueryHandler::HandleStatusQueryAsync",
                 
                 // Code location with bundling options
-                Code = Code.FromAsset("../LambdaHandlers/bin/Release/net8.0/publish"),
+                Code = Code.FromBucket(LambdaCodeBucket, "lambda-code/upload-lambda-latest.zip"),
                 
                 // Function name in AWS
                 
@@ -902,7 +912,7 @@ namespace Infrastructure
                 Handler = "LambdaHandlers::LambdaHandlers.Handlers.ImageProcessingHandler::HandleS3EventAsync",
                 
                 // CODE: Build and package the Lambda code
-                Code = Code.FromAsset("../LambdaHandlers/bin/Release/net8.0/publish"),
+                Code = Code.FromBucket(LambdaCodeBucket, "lambda-code/upload-lambda-latest.zip"),
                 
                 // FUNCTION NAME: Appears in AWS Console
                 
@@ -1784,7 +1794,7 @@ namespace Infrastructure
             {
                 Runtime = Runtime.DOTNET_8,
                 Handler = "LambdaHandlers::LambdaHandlers.Handlers.EmailSenderHandler::HandleEmailAsync",
-                Code = Code.FromAsset("../LambdaHandlers/bin/Release/net8.0/publish"),
+                Code = Code.FromBucket(LambdaCodeBucket, "lambda-code/upload-lambda-latest.zip"),
                 Timeout = Duration.Seconds(30),
                 MemorySize = 256,
                 Environment = new Dictionary<string, string>
