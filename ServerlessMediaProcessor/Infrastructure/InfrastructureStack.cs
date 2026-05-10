@@ -432,7 +432,6 @@ namespace Infrastructure
                 Code = Code.FromAsset("../LambdaHandlers/bin/Release/net8.0/publish"),
                 
                 // FUNCTION NAME: Human-readable name in AWS Console
-                FunctionName = "MediaProcessor-UploadHandler-JSavic",
                 
                 // MEMORY: How much RAM to allocate (128 MB to 10,240 MB)
                 // More memory = More CPU power proportionally
@@ -676,7 +675,6 @@ namespace Infrastructure
                 Code = Code.FromAsset("../LambdaHandlers/bin/Release/net8.0/publish"),
                 
                 // Function name in AWS
-                FunctionName = "MediaProcessor-StatusQuery-JSavic",
                 
                 // MEMORY: 256 MB is sufficient for DynamoDB queries
                 // Status queries are lightweight:
@@ -907,7 +905,6 @@ namespace Infrastructure
                 Code = Code.FromAsset("../LambdaHandlers/bin/Release/net8.0/publish"),
                 
                 // FUNCTION NAME: Appears in AWS Console
-                FunctionName = "MediaProcessor-ProcessingHandler-JSavic",
                 
                 // MEMORY: Image processing is CPU-intensive
                 // More memory = More CPU power in Lambda
