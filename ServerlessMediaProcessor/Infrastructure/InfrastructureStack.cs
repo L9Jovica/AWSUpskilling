@@ -430,27 +430,9 @@ namespace Infrastructure
                 Handler = "LambdaHandlers::LambdaHandlers.Handlers.ImageUploadHandler::HandleUploadAsync",
                 
                 // CODE: Where is the Lambda code?
-                // We point to the LambdaHandlers project directory
-                // CDK will automatically:
-                // 1. Build the project (dotnet publish)
-                // 2. Package it into a .zip file
-                // 3. Upload it to S3
-                // 4. Deploy it to Lambda
-                // 
-                // IMPORTANT: We specify bundling options to ensure proper .NET build
-                Code = Code.FromAsset("../LambdaHandlers", new Amazon.CDK.AWS.S3.Assets.AssetOptions
-                {
-                    Bundling = new BundlingOptions
-                    {
-                        Image = Runtime.DOTNET_8.BundlingImage,
-                        Command = new[]
-                        {
-                            "/bin/sh",
-                            "-c",
-                            "dotnet publish -c Release -o /asset-output"
-                        }
-                    }
-                }),
+                // In CI/CD, we use pre-built code from CodeBuild (no Docker bundling needed)
+                // The buildspec.yml publishes to this directory
+                Code = Code.FromAsset("../LambdaHandlers/bin/Release/net8.0/publish"),
                 
                 // FUNCTION NAME: Human-readable name in AWS Console
                 FunctionName = "MediaProcessor-UploadHandler-JSavic",
@@ -695,19 +677,7 @@ namespace Infrastructure
                 Handler = "LambdaHandlers::LambdaHandlers.Handlers.StatusQueryHandler::HandleStatusQueryAsync",
                 
                 // Code location with bundling options
-                Code = Code.FromAsset("../LambdaHandlers", new Amazon.CDK.AWS.S3.Assets.AssetOptions
-                {
-                    Bundling = new BundlingOptions
-                    {
-                        Image = Runtime.DOTNET_8.BundlingImage,
-                        Command = new[]
-                        {
-                            "/bin/sh",
-                            "-c",
-                            "dotnet publish -c Release -o /asset-output"
-                        }
-                    }
-                }),
+                Code = Code.FromAsset("../LambdaHandlers/bin/Release/net8.0/publish"),
                 
                 // Function name in AWS
                 FunctionName = "MediaProcessor-StatusQuery-JSavic",
@@ -939,19 +909,7 @@ namespace Infrastructure
                 Handler = "LambdaHandlers::LambdaHandlers.Handlers.ImageProcessingHandler::HandleS3EventAsync",
                 
                 // CODE: Build and package the Lambda code
-                Code = Code.FromAsset("../LambdaHandlers", new Amazon.CDK.AWS.S3.Assets.AssetOptions
-                {
-                    Bundling = new BundlingOptions
-                    {
-                        Image = Runtime.DOTNET_8.BundlingImage,
-                        Command = new[]
-                        {
-                            "/bin/sh",
-                            "-c",
-                            "dotnet publish -c Release -o /asset-output"
-                        }
-                    }
-                }),
+                Code = Code.FromAsset("../LambdaHandlers/bin/Release/net8.0/publish"),
                 
                 // FUNCTION NAME: Appears in AWS Console
                 FunctionName = "MediaProcessor-ProcessingHandler-JSavic",

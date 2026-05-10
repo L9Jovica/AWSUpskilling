@@ -35,10 +35,10 @@ phases:
   post_build:
     commands:
       - echo "Publishing Lambda handlers..."
-      - dotnet publish LambdaHandlers/LambdaHandlers.csproj --configuration Release --output lambda-publish
-      - cd lambda-publish
-      - zip -r ../upload-lambda.zip .
-      - cd ..
+      - dotnet publish LambdaHandlers/LambdaHandlers.csproj --configuration Release --output LambdaHandlers/bin/Release/net8.0/publish
+      - cd LambdaHandlers/bin/Release/net8.0/publish
+      - zip -r ../../../../../upload-lambda.zip .
+      - cd ../../../../../
       - echo "Synthesizing CDK templates..."
       - cd Infrastructure
       - cdk synth --output ../cdk.out
