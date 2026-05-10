@@ -202,11 +202,10 @@ namespace Infrastructure
             {
                 ActionName = "GitHub-Source",
                 
-                // CONNECTION ARN: Created via AWS Console or CLI
-                // Format: arn:aws:codestar-connections:region:account:connection/connection-id
-                // IMPORTANT: You must create this connection first (see setup instructions)
-                // This will be created when you deploy the pipeline for the first time
-                ConnectionArn = $"arn:aws:codestar-connections:{this.Region}:{this.Account}:connection/github-media-processor",
+                // CONNECTION ARN: Your actual GitHub connection
+                // Created in AWS Console as "github-media-processorJSavic"
+                // Status: AVAILABLE ✅
+                ConnectionArn = "arn:aws:codeconnections:eu-west-1:765891906457:connection/e0045f78-5500-4fb0-a85b-b5e8a0732001",
                 
                 // REPOSITORY: GitHub repo (format: owner/repo-name)
                 Owner = "L9Jovica",
