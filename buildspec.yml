@@ -39,6 +39,8 @@ phases:
       - cd LambdaHandlers/bin/Release/net8.0/publish
       - zip -r ../../../../../upload-lambda.zip .
       - cd ../../../../../
+      - echo "Building Infrastructure project for CDK..."
+      - dotnet build Infrastructure/Infrastructure.csproj --configuration Debug
       - echo "Synthesizing CDK templates..."
       - cd Infrastructure
       - cdk synth --output ../cdk.out
