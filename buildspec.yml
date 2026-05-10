@@ -88,16 +88,7 @@ phases:
       
       # Create build info
       - echo "Creating build info..."
-      - |
-        cat > build-info.json << EOF
-        {
-          "buildId": "$CODEBUILD_BUILD_ID",
-          "buildNumber": "$CODEBUILD_BUILD_NUMBER",
-          "sourceVersion": "$CODEBUILD_RESOLVED_SOURCE_VERSION",
-          "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-          "branch": "$CODEBUILD_WEBHOOK_HEAD_REF"
-        }
-        EOF
+      - echo "{\"buildId\":\"$CODEBUILD_BUILD_ID\",\"buildNumber\":\"$CODEBUILD_BUILD_NUMBER\",\"sourceVersion\":\"$CODEBUILD_RESOLVED_SOURCE_VERSION\",\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}" > build-info.json
       
       - echo "Build artifacts created successfully!"
       - echo "Artifacts:"
