@@ -1220,7 +1220,12 @@ namespace Infrastructure
                 NatGateways = 1, // Using 1 to save costs (can use 2 for production)
                 
                 // VPC NAME
-                VpcName = "MediaProcessor-VPC"
+                VpcName = "MediaProcessor-VPC",
+                
+                // DISABLE DEFAULT SECURITY GROUP RESTRICTION
+                // This avoids creating a custom resource Lambda that requires S3 asset publishing
+                // For CI/CD simplicity, we disable this. In production, you'd want to keep it enabled.
+                RestrictDefaultSecurityGroup = false
             });
             
             // -------------------------------------------
