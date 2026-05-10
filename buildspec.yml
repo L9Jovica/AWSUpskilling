@@ -1,0 +1,123 @@
+# AWS CodeBuild Build Specification
+# This file tells CodeBuild HOW to build your project
+#
+# 🎓 LOCATION: This file MUST be at repository root
+# CodeBuild looks for buildspec.yml at the root of your GitHub repo
+#
+# 🎓 AWS CODEBUILD CONCEPTS:
+# CodeBuild runs in a Docker container with tools you specify
+# It goes through phases: install → pre_build → build → post_build
+# Each phase runs commands sequentially
+# If ANY command fails (exit code != 0), build stops
+
+version: 0.2
+
+env:
+  variables:
+    DOTNET_CLI_TELEMETRY_OPTOUT: 1
+    DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+
+phases:
+  
+  install:
+    runtime-versions:
+      dotnet: 8.0
+    
+    commands:
+      - echo "====================================="
+      - echo "PHASE 1: INSTALL - Installing tools"
+      - echo "====================================="
+      - dotnet --version
+      - npm install -g aws-cdk
+      - cdk --version
+      - echo "Build started at $(date)"
+      - echo "Repository $CODEBUILD_SOURCE_REPO_URL"
+      - echo "Commit ID $CODEBUILD_RESOLVED_SOURCE_VERSION"
+
+  pre_build:
+    commands:
+      - echo "====================================="
+      - echo "PHASE 2: PRE_BUILD - Restoring packages"
+      - echo "====================================="
+      
+      # Navigate to ServerlessMediaProcessor directory
+      - cd ServerlessMediaProcessor
+      
+      # Restore NuGet packages
+      - dotnet restore ServerlessMediaProcessor.sln
+      
+      - echo "Solution restored. Contents:"
+      - ls -la
+
+  build:
+    commands:
+      - echo "====================================="
+      - echo "PHASE 3: BUILD - Compiling and Testing"
+      - echo "====================================="
+      
+      # Build solution
+      - echo "Building solution..."
+      - dotnet build ServerlessMediaProcessor.sln --configuration Release --no-restore
+      
+      # Run unit tests
+      - echo "Running unit tests..."
+      - dotnet test LambdaHandlers.Tests/LambdaHandlers.Tests.csproj --configuration Release --no-build --verbosity normal
+      
+      - echo "✅ All tests passed!"
+
+  post_build:
+    commands:
+      - echo "====================================="
+      - echo "PHASE 4: POST_BUILD - Creating deployment packages"
+      - echo "====================================="
+      
+      # Publish Lambda functions
+      - echo "Publishing Lambda handlers..."
+      - dotnet publish LambdaHandlers/LambdaHandlers.csproj --configuration Release --output lambda-publish
+      
+      # Create ZIP for Lambda
+      - cd lambda-publish
+      - zip -r ../upload-lambda.zip .
+      - cd ..
+      
+      # Synthesize CDK templates
+      - echo "Synthesizing CDK templates..."
+      - cd Infrastructure
+      - cdk synth --output ../cdk.out
+      - cd ..
+      
+      # Create build info
+      - echo "Creating build info..."
+      - |
+        cat > build-info.json << EOF
+        {
+          "buildId": "$CODEBUILD_BUILD_ID",
+          "buildNumber": "$CODEBUILD_BUILD_NUMBER",
+          "sourceVersion": "$CODEBUILD_RESOLVED_SOURCE_VERSION",
+          "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "branch": "$CODEBUILD_WEBHOOK_HEAD_REF"
+        }
+        EOF
+      
+      - echo "Build artifacts created successfully!"
+      - echo "Artifacts:"
+      - ls -lh *.zip
+      - du -sh cdk.out
+
+artifacts:
+  # All paths relative to ServerlessMediaProcessor directory
+  base-directory: ServerlessMediaProcessor
+  files:
+    - upload-lambda.zip
+    - 'cdk.out/**/*'
+    - build-info.json
+
+cache:
+  paths:
+    - '/root/.nuget/packages/**/*'
+
+reports:
+  test-results:
+    files:
+      - 'ServerlessMediaProcessor/LambdaHandlers.Tests/TestResults/*.trx'
+    file-format: 'VisualStudioTrx'
