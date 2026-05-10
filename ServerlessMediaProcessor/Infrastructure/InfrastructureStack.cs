@@ -165,8 +165,7 @@ namespace Infrastructure
             new CfnOutput(this, "InputBucketName", new CfnOutputProps
             {
                 Value = InputBucket.BucketName,
-                Description = "S3 bucket for input media files",
-                ExportName = "MediaProcessor-InputBucket"
+                Description = "S3 bucket for input media files"
             });
             
             // -------------------------------------------
@@ -196,8 +195,7 @@ namespace Infrastructure
             new CfnOutput(this, "OutputBucketName", new CfnOutputProps
             {
                 Value = OutputBucket.BucketName,
-                Description = "S3 bucket for processed media files",
-                ExportName = "MediaProcessor-OutputBucket"
+                Description = "S3 bucket for processed media files"
             });
             
             // ==========================================
@@ -334,7 +332,6 @@ namespace Infrastructure
             {
                 Value = JobsTable.TableName,
                 Description = "DynamoDB table for media processing jobs",
-                ExportName = "MediaProcessor-JobsTable"
             });
             
             // ==========================================
@@ -562,7 +559,6 @@ namespace Infrastructure
                 // The full URL will be: https://{restApiId}.execute-api.{region}.amazonaws.com/prod/upload
                 Value = $"{RestApi.Url}upload",
                 Description = "REST API Gateway endpoint URL for image upload",
-                ExportName = "MediaProcessor-ApiUrl"
             });
             
             // ===================================================
@@ -773,7 +769,6 @@ namespace Infrastructure
                 // Example URL: https://abc123.execute-api.eu-west-1.amazonaws.com/prod/status/{jobId}
                 Value = $"{RestApi.Url}status/{{jobId}}",
                 Description = "REST API endpoint to query job status (replace {{jobId}} with actual job ID)",
-                ExportName = "MediaProcessor-StatusQueryUrl"
             });
             
             // ===================================================
@@ -1034,14 +1029,12 @@ namespace Infrastructure
             {
                 Value = ProcessingFunction.FunctionName,
                 Description = "Name of the image processing Lambda function",
-                ExportName = "MediaProcessor-ProcessingFunction"
             });
             
             new CfnOutput(this, "EventBridgeRuleName", new CfnOutputProps
             {
                 Value = s3EventRule.RuleName,
                 Description = "Name of the EventBridge rule that triggers processing",
-                ExportName = "MediaProcessor-EventBridgeRule"
             });
             
             // ===================================================
@@ -1252,7 +1245,6 @@ namespace Infrastructure
             {
                 Value = Vpc.VpcId,
                 Description = "VPC ID for MediaProcessor",
-                ExportName = "MediaProcessor-VpcId"
             });
             
             // -------------------------------------------
@@ -1535,14 +1527,12 @@ namespace Infrastructure
             {
                 Value = $"http://{adminDashboard.LoadBalancer.LoadBalancerDnsName}",
                 Description = "Admin Dashboard URL",
-                ExportName = "MediaProcessor-AdminDashboardUrl"
             });
             
             new CfnOutput(this, "EcsClusterName", new CfnOutputProps
             {
                 Value = EcsCluster.ClusterName,
                 Description = "ECS Cluster Name",
-                ExportName = "MediaProcessor-EcsClusterName"
             });
             
             // -------------------------------------------
@@ -1827,14 +1817,12 @@ namespace Infrastructure
             {
                 Value = jobCompletionTopic.TopicArn,
                 Description = "SNS Topic ARN for job completion notifications",
-                ExportName = "MediaProcessor-JobCompletionTopicArn"
             });
             
             new CfnOutput(this, "EmailNotificationQueueUrl", new CfnOutputProps
             {
                 Value = emailNotificationQueue.QueueUrl,
                 Description = "SQS Queue URL for email notifications",
-                ExportName = "MediaProcessor-EmailNotificationQueueUrl"
             });
             
             // -------------------------------------------
